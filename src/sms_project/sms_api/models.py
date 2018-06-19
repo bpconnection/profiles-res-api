@@ -4,7 +4,8 @@ from django.db import models
 class Pais(models.Model):
     id_pais = models.AutoField(primary_key=True)
     pais = models.CharField(max_length=20, unique=True)
-    prefijo = models.CharField(max_length=3)
+    codigo_pais= models.CharField(max_length=3)
+    codigo_area = models.CharField(max_length=3)
     moneda = models.CharField(max_length=3)
 
     class Meta:
@@ -45,7 +46,8 @@ class Plataforma_envio(models.Model):
 class Club(models.Model):
     id_club =  models.AutoField(primary_key=True)
     nombre_club = models.CharField(max_length=20)
-    id_pais_operadora = models.ForeignKey(Pais_operadora, on_delete=models.CASCADE)
+    pais_operadora = models.ForeignKey(Pais_operadora, on_delete=models.CASCADE)
+    corto_club = models.CharField(max_length=6)
     corto_mo_gratis =  models.CharField(max_length=6)
     corto_mt_gratis = models.CharField(max_length=6)
     corto_mo_cobro = models.CharField(max_length=6)
@@ -55,19 +57,33 @@ class Club(models.Model):
     corto_broadcast = models.CharField(max_length=6)
     limite_envios_broadcast = models.PositiveIntegerField()
     cantidad_cobros_diarios = models.PositiveSmallIntegerField()
-    id_plataforma_envio = models.ForeignKey(Plataforma_envio, on_delete=models.CASCADE)
+    plataforma_envio = models.ForeignKey(Plataforma_envio, on_delete=models.CASCADE)
     puntos =  models.PositiveIntegerField(default=0)
     estado =  models.BooleanField()
     def __str__(self):
-        return '%s %s' % (self.nombre_club, self.id_pais_operadora)
+        return '%s %s' % (self.nombre_club, self.pais_operadora)
+
+class Tipo_accion(models.Model):
+    nombre_accion = models.CharField(max_length=50,primary_key=True)
+    def __str__(self):
+        return self.nombre_accion
+
+
+class Keywords(models.Model):
+    club= models.ForeignKey(Club,on_delete=models.CASCADE)
+    kw= models.CharField(max_length=100)
+    tipo_accion= models.ForeignKey(Tipo_accion,on_delete=models.CASCADE)
+
+    class Meta:
+        verbose_name = "Keywords"
+        verbose_name_plural = "Keywords"
+
 
 class Mensajes_informativo(models.Model):
-    id_club = models.OneToOneField(Club,on_delete=models.CASCADE,primary_key=True)
-    bienvenida1 = models.CharField(max_length=160)
-    bienvenida2 = models.CharField(max_length=160)
-    salida = models.CharField(max_length=160)
-    ayuda = models.CharField(max_length=160)
-    ayuda_multiple = models.CharField(max_length=160)
+    club = models.ForeignKey(Club,on_delete=models.CASCADE)
+    mensaje = models.CharField(max_length=160)
+    tipo_accion = models.ForeignKey(Tipo_accion, on_delete=models.CASCADE)
+
     class Meta:
         verbose_name = "Mensajes_informativo"
         verbose_name_plural = "Mensajes Informativos"
@@ -91,6 +107,7 @@ class Estado_envio(models.Model):
         verbose_name_plural = "Estado Envios"
     def __str__(self):
         return self.estado_envio
+
 class Configuracion_envio(models.Model):
     id_configuracion_envio = models.AutoField(primary_key=True)
     id_club = models.ForeignKey(Club, on_delete=models.CASCADE)
@@ -135,7 +152,7 @@ class Lista_negra(models.Model):
 
 class Contenido(models.Model):
     id_contenido =  models.AutoField(primary_key=True)
-    id_club = models.ForeignKey(Club, on_delete=models.CASCADE)
+    club = models.ForeignKey(Club, on_delete=models.CASCADE)
     contenido = models.CharField(max_length=200)
     aleatorio = models.BooleanField()
     def __str__(self):
@@ -143,8 +160,8 @@ class Contenido(models.Model):
 
 class Contenido_programado(models.Model):
     id_contenido_programado =  models.AutoField(primary_key=True)
-    id_contenido = models.ForeignKey(Contenido, on_delete=models.CASCADE)
-    id_estado_envio = models.ForeignKey(Estado_envio, on_delete=models.CASCADE)
+    contenido = models.ForeignKey(Contenido, on_delete=models.CASCADE)
+    estado_envio = models.ForeignKey(Estado_envio, on_delete=models.CASCADE)
     fecha_envio = models.DateField()
     hora_envio = models.TimeField()
     fecha_ejecucion= models.DateTimeField()
@@ -160,7 +177,7 @@ class Envio_contenido(models.Model):
     id_sms = models.CharField(max_length=10,blank=True)
     cobro = models.PositiveSmallIntegerField()
     msisdn = models.CharField(max_length=11)
-    id_contenido_programado = models.ForeignKey(Contenido_programado, on_delete=models.CASCADE)
+    contenido_programado = models.ForeignKey(Contenido_programado, on_delete=models.CASCADE)
     fecha = models.DateTimeField()
     corto = models.CharField(max_length=11)
     recobro = models.PositiveSmallIntegerField()
@@ -170,7 +187,7 @@ class Envio_contenido(models.Model):
 
 class Suscriptor(models.Model):
     id_suscriptor = models.AutoField(primary_key=True)
-    msisdn = models.CharField(max_length=11)
+    msisdn = models.CharField(max_length=11, unique=True)
     puntos = models.PositiveIntegerField(default=0)
     class Meta:
         verbose_name = "Suscriptor"
@@ -178,34 +195,43 @@ class Suscriptor(models.Model):
     def __str__(self):
         return self.msisdn
 
-class Alta(models.Model):
-    id_altas =  models.AutoField(primary_key=True)
-    fecha = models.DateTimeField(auto_now_add=True)
-    medio = models.CharField(max_length=20)
-    campania = models.CharField(max_length=20)
-    def __str__(self):
-        return format(self.fecha)
-
-class Baja(models.Model):
-    id_bajas =  models.AutoField(primary_key=True)
-    fecha =  models.DateTimeField(auto_now_add=True)
-    medio = models.CharField(max_length=20)
-    def __str__(self):
-        return format(self.fecha)
 
 class Club_suscriptor(models.Model):
     id_club_suscriptor =  models.AutoField(primary_key=True)
-    id_club = models.ForeignKey(Club, on_delete=models.CASCADE)
-    id_suscriptor =  models.OneToOneField(Suscriptor,on_delete=models.CASCADE)
+    club = models.ForeignKey(Club, on_delete=models.CASCADE)
+    suscriptor =  models.ForeignKey(Suscriptor,on_delete=models.CASCADE)
     fecha_primera_alta = models.DateTimeField(auto_now_add=True)
-    id_alta =  models.OneToOneField(Alta,on_delete=models.CASCADE)
-    id_baja =  models.OneToOneField(Baja,on_delete=models.CASCADE)
+    #alta =  models.OneToOneField(Alta,on_delete=models.CASCADE,null=True)
+    #baja =  models.OneToOneField(Baja,on_delete=models.CASCADE)
     fecha_ultimo_evento = models.DateTimeField(auto_now=True )
     fecha_ultimo_cobro = models.DateTimeField(blank=True, null=True)
     estado = models.BooleanField()
     class Meta:
         verbose_name = "Club_suscriptor"
         verbose_name_plural = "Club Suscriptores"
+    def __str__(self):
+        return '%s %s %s %s' % (self.club,self.suscriptor,format(self.fecha_ultimo_evento),self.estado)
+
+class Alta(models.Model):
+    id_alta =  models.AutoField(primary_key=True)
+    #club = models.IntegerField()
+    #id_suscriptor = models.IntegerField()
+    club_suscriptor = models.ForeignKey(Club_suscriptor, on_delete=models.CASCADE,null=True)
+    fecha = models.DateTimeField(auto_now_add=True)
+    medio = models.CharField(max_length=20,default='sms')
+    campania = models.CharField(max_length=20)
+    def __str__(self):
+        return format(self.fecha)
+
+class Baja(models.Model):
+    id_baja =  models.AutoField(primary_key=True)
+    ##id_club = models.IntegerField()
+    ##id_suscriptor = models.IntegerField()
+    club_suscriptor = models.ForeignKey(Club_suscriptor, on_delete=models.CASCADE,null=True)
+    fecha =  models.DateTimeField(auto_now_add=True)
+    medio = models.CharField(max_length=20,default='sms')
+    def __str__(self):
+        return format(self.fecha)
 
 class Configuracion_broadcast(models.Model):
     id_broadcast = models.AutoField(primary_key=True)
