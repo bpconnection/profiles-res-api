@@ -28,13 +28,12 @@ class Gestionar_mo():
     def contenido_aleatorio(id_club):
         query_contenido_aleatorio = models.Contenido.objects.filter(club__id_club__exact=id_club,aleatorio__exact=True).order_by('?')[:1]
         #query_contenido_aleatorio.order_by('?')[:1]
-        return query_contenido_aleatorio[0].contenido
+        return query_contenido_aleatorio[0].id_contenido,query_contenido_aleatorio[0].contenido
+
 
     def procesar(self):
 
-        """operadora,pais = self.ruta.split('_')"""
-        pais = "gt"
-        operadora = "claro"
+        operadora,pais = self.ruta.split('_')
 
         query_pais_operadora = models.Pais_operadora.objects.filter(id_operadora__operadora=operadora,
                                                      id_pais__codigo_pais=pais)
@@ -44,7 +43,7 @@ class Gestionar_mo():
 
         query_keywords = models.Keywords.objects.filter(kw__exact=mensaje,club__pais_operadora__id_pais_operadora=query_pais_operadora[0].id_pais_operadora)
 
-        id_club =  int(query_keywords[0].club.id_club)
+        id_club = query_keywords[0].club.id_club
         #Verifica si la keyword de alta existe
 
         key_valida = 0
@@ -63,7 +62,7 @@ class Gestionar_mo():
                agregar_club_suscriptor.save()
                Gestionar_mo.alta(agregar_club_suscriptor,self.medio,self.campania)
                msj_inf = Gestionar_mo.mensaje_info(id_club, "alta")
-               msj_inf = Gestionar_mo.contenido_aleatorio(id_club)
+               id_contenido,msj_inf = Gestionar_mo.contenido_aleatorio(id_club)
             else:
                 query_club_suscriptor = models.Club_suscriptor.objects.filter(suscriptor__msisdn=self.origen,club__id_club=query_keywords[0].club.id_club)
                 if query_club_suscriptor.exists():
@@ -73,15 +72,15 @@ class Gestionar_mo():
                     #mensaje = "mensaje Ya esta suscrito"
                     if query_club_suscriptor[0].estado == True:
                         #msj_inf = Gestionar_mo.mensaje_info(id_club, "si_suscrito")
-                        a = send_messages.Envio("mt_gratis",msisdn,"prueba",1)
-
-                        msj_inf = a.enviar()
+                        #msj_inf = Envio.enviar("mt_gratis",msisdn,"prueba",id_club)
+                        msj_inf = send_messages.Envio.enviar('mt_gratis',msisdn,0,'prueba de envio',id_club,self.ruta)
+                        #msj_inf = a.enviar()
                     else:
                         actualizar_club_suscriptor = query_club_suscriptor[0]
                         actualizar_club_suscriptor.estado = True
                         actualizar_club_suscriptor.save()
                         msj_inf = Gestionar_mo.mensaje_info(id_club, "re_alta")
-                        msj_inf = Gestionar_mo.contenido_aleatorio(id_club)
+                        id_contenido,msj_inf = Gestionar_mo.contenido_aleatorio(id_club)
                 else:
                     nuevo_suscriptor = models.Suscriptor.objects.filter(msisdn=self.origen)
                     agregar_club_suscriptor = models.Club_suscriptor(
@@ -131,9 +130,8 @@ class Gestionar_mo():
             #mensaje = "mensaje no ingreso una key valida"
             msj_inf = Gestionar_mo.mensaje_info(id_club, "key_no_valida")
 
-        envio_sms = send_messages.Envio(self.origen,self.destino,self.mensaje,self.ruta)
-        a = envio_sms.enviar()
-        return 'procesado!!!' + str(query_keywords[0].club.id_club) + " mensaje: "  + str(operadora) +" "+ str(pais)
+
+        return 'procesado!!!' + str(query_keywords[0].club.id_club) + " mensaje: "  + str(msj_inf)
 
 
 

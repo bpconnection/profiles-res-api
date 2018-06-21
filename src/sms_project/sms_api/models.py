@@ -33,7 +33,7 @@ class Pais_operadora(models.Model):
     def __str__(self):
         return '%s %s' % (self.id_pais, self.id_operadora)
 
-class Plataforma_envio(models.Model):
+"""class Plataforma_envio(models.Model):
     id_plataforma_envio =  models.AutoField(primary_key=True)
     nombre = models.CharField(max_length=20)
     descripcion = models.CharField(max_length=50)
@@ -41,7 +41,7 @@ class Plataforma_envio(models.Model):
         verbose_name = "Plataforma_envio"
         verbose_name_plural = "Plataforma Envio"
     def __str__(self):
-        return self.nombre
+        return self.nombre"""
 
 class Club(models.Model):
     id_club =  models.AutoField(primary_key=True)
@@ -57,7 +57,7 @@ class Club(models.Model):
     corto_broadcast = models.CharField(max_length=6)
     limite_envios_broadcast = models.PositiveIntegerField()
     cantidad_cobros_diarios = models.PositiveSmallIntegerField()
-    plataforma_envio = models.ForeignKey(Plataforma_envio, on_delete=models.CASCADE)
+    #plataforma_envio = models.ForeignKey(Plataforma_envio, on_delete=models.CASCADE)
     puntos =  models.PositiveIntegerField(default=0)
     estado =  models.BooleanField()
     def __str__(self):
@@ -110,7 +110,7 @@ class Estado_envio(models.Model):
 
 class Configuracion_envio(models.Model):
     id_configuracion_envio = models.AutoField(primary_key=True)
-    id_club = models.ForeignKey(Club, on_delete=models.CASCADE)
+    club = models.ForeignKey(Club, on_delete=models.CASCADE)
     hora_envio = models.TimeField()
     lunes = models.BooleanField()
     martes = models.BooleanField()
@@ -174,11 +174,11 @@ class Contenido_programado(models.Model):
 
 class Envio_contenido(models.Model):
     id_envio_contenido =  models.AutoField(primary_key=True)
-    id_sms = models.CharField(max_length=10,blank=True)
-    cobro = models.PositiveSmallIntegerField()
+    id_envio = models.CharField(max_length=10,blank=True)
+    cobro = models.PositiveSmallIntegerField(default=0)
     msisdn = models.CharField(max_length=11)
     contenido_programado = models.ForeignKey(Contenido_programado, on_delete=models.CASCADE)
-    fecha = models.DateTimeField()
+    fecha = models.DateTimeField(auto_now_add=True)
     corto = models.CharField(max_length=11)
     recobro = models.PositiveSmallIntegerField()
     class Meta:
@@ -257,16 +257,24 @@ class Base_cargada_broadcast(models.Model):
         verbose_name = "Base_cargada_broadcast"
         verbose_name_plural = "Base Cargada Broadcast"
 
-class Edge(models.Model):
-    id_edge =  models.AutoField(primary_key=True)
+class Configuracion_conexion_tigohn(models.Model):
+    id_conf =  models.AutoField(primary_key=True)
+    club = models.ForeignKey(Club, on_delete=models.CASCADE)
+    host = models.CharField(max_length=50)
     username = models.CharField(max_length=15)
     password = models.CharField(max_length=15)
-    dlr_mask = models.CharField(max_length=200)
-    sms = models.CharField(max_length=20)
-    dlr_url = models.CharField(max_length=100)
+    dlr_mask = models.CharField(max_length=5)
+    priority_c = models.CharField(max_length=2)
+    priority_r = models.CharField(max_length=2)
+    smsc = models.CharField(max_length=20)
+    dlr_url = models.CharField(max_length=200)
+    binfo = models.CharField(max_length=5)
+    binfo_c = models.CharField(max_length=5)
+    binfo_r = models.CharField(max_length=5)
+
     class Meta:
-        verbose_name = "Edge"
-        verbose_name_plural = "Plataforma Envio EDGE"
+        verbose_name = "Configuracion_conexion_tigohn"
+        verbose_name_plural = "Configuracion conexion tigohn"
 
 class Mensajes_mo(models.Model):
     id_mo =  models.AutoField(primary_key=True)

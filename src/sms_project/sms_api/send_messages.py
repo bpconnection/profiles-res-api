@@ -1,33 +1,78 @@
 from rest_framework.response import Response
 from . import models
 import urllib
+from time import time
 
 class Envio():
-    def enviar(self):
+    def uniqid(prefix = ''):
+        #return prefix + hex(int(time()*10000000))[2:]
+        return prefix + hex(int(time()))[2:10] + hex(int(time()*1000000) % 0x100000)[2:7]
 
+    def enviar_tigo_hn(tipo_corto, msisdn, id_contenido, mensaje, id_club):
+
+        query_conexion = models.Configuracion_conexion_tigohn.objects.filter(club__id_club = id_club)
+
+        host = query_conexion[0].host
+        username = query_conexion[0].username
+        password = query_conexion[0].password
+        dlr_mask = query_conexion[0].dlr_mask
+        priority_c = query_conexion[0].priority_c
+        priority_r = query_conexion[0].priority_r
+        smsc = query_conexion[0].smsc
+        dlr_url = query_conexion[0].dlr_url
+        binfo_c = query_conexion[0].binfo_c
+        binfo_r = query_conexion[0].binfo_r
+
+        id_envio = Envio.uniqid()
+
+        if tipo_corto == 'mt_gratis':
+            corto = query_conexion[0].club.corto_mt_gratis
+            binfo = binfo_r.upper()
+            recobro = '0'
+            priority = priority_r
+        if tipo_corto == 'mt_cobro1':
+            corto = query_conexion[0].club.corto_mt_cobro1
+            binfo = binfo_c.upper()
+            recobro = '0'
+            priority = priority_c
+        if tipo_corto == 'mt_cobro2':
+            corto = query_conexion[0].club.corto_mt_cobro2
+            binfo = binfo_c.upper()
+            recobro = '1'
+            priority = priority_c
+        if tipo_corto == 'mt_cobro3':
+            corto = query_conexion[0].club.corto_mt_cobro3
+            binfo = binfo_c.upper()
+            recobro = '2'
+            priority = priority_c
+
+        url_dlr = dlr_url + '&myid=' + id_envio + '&id_club=' + str(id_club) + '&recobro=' + recobro
+        url_kannel = host + 'username=' + username + '&password=' + password + '&from=' + corto + '&to=' + str(msisdn) + '&text=' + mensaje + '&dlr-mask=' + dlr_mask + '&priority=' + priority + '&smsc=' + smsc + '&dlr-url=' + url_dlr + '&binfo=' + binfo
+        """
         url = 'http://72.55.181.60/digicel/sms/pruebamt.php?origen=50211111111'
-        #url = "http://www.google.com/"
         request = urllib.request.Request(url)
         response = urllib.request.urlopen(request)
-        urlp = response.read()
+        urlp = response.read()"""
+        """if id_contenido != 0:
+            query_conexion = models.Configuracion_conexion_tigohn.objects.filter(club__id_club = id_club)
+            guardar_envio_contenido = models.Envio_contenido(
+                id_envio = id_envio,
+                cobro = 0,
+                msisdn = msisdn,
+                contenido_programado,
+                corto = corto
+                recobro
+            )
 
-        query_corto_envio = models.Club.objects.filter(id_club = 1)
+            guardar_envio_contenido.save()"""
+        return url_kannel
 
-        #query_corto_envio = models.Club.objects.filter(id_club__exact=1)
-        """if self.tipo_corto == 'mt_gratis':
-            corto = query_corto_envio[0].corto_mt_gratis
-        if self.tipo_corto == 'mt_cobro1':
-            corto = query_corto_envio[0].corto_mt_cobro1
-        if self.tipo_corto == 'mt_cobro2':
-            corto = query_corto_envio[0].corto_mt_cobro2
-        if self.tipo_corto == 'mt_cobro3':
-            corto = query_corto_envio[0].corto_mt_cobro3"""
+    def enviar(tipo_corto,msisdn,id_contenido,mensaje,id_club,ruta):
+        if ruta == 'tigo_hn':
+            r = Envio.enviar_tigo_hn(tipo_corto,msisdn,id_contenido,mensaje,id_club)
+        if ruta == 'claro_gt':
+            r = Envio.enviar_tigo_hn(tipo_corto,msisdn,id_contenido,mensaje,id_club)
+        if ruta == 'tigo_gt':
+            r = Envio.enviar_tigo_hn(tipo_corto,msisdn,id_contenido,mensaje,id_club)
 
-        #return "prueba:"+ str(query_corto_envio[0].corto_mt_gratis)
-        return "prueba:" + str(urlp)
-
-    def __init__(self, tipo_corto, destino, mensaje, codigo_club):
-        self.tipo_corto = tipo_corto
-        self.destino = destino
-        self.mensaje = mensaje.lower()
-        self.codigo_club = codigo_club
+        return "prueba:" + str(r)

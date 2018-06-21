@@ -46,6 +46,12 @@ class Contenido_programadoAdmin(admin.ModelAdmin):
         model = models.Contenido_programado
         fields = "__all__"
 
+class Configuracion_envioAdmin(admin.ModelAdmin):
+    list_display = ["club","estado"]
+    class Meta:
+        model = models.Configuracion_envio
+        fields = "__all__"
+
 class Envio_contenidoAdmin(admin.ModelAdmin):
     list_display = ["id_envio_contenido","contenido_programado","fecha"]
     class Meta:
@@ -80,12 +86,13 @@ admin.site.register(models.Pais)
 admin.site.register(models.Operadora)
 admin.site.register(models.Pais_operadora,Pais_operadoraAdmin)
 admin.site.register(models.Keywords,KeywordsAdmin)
-admin.site.register(models.Plataforma_envio)
+#admin.site.register(models.Plataforma_envio)
 admin.site.register(models.Club,ClubAdmin)
 admin.site.register(models.Mensajes_informativo,Mensajes_informativoAdmin)
 admin.site.register(models.Tipo_envio)
 admin.site.register(models.Tipo_accion)
 admin.site.register(models.Estado_envio)
+admin.site.register(models.Configuracion_envio,Configuracion_envioAdmin)
 admin.site.register(models.Configuracion_reenvio)
 admin.site.register(models.Lista_negra)
 admin.site.register(models.Contenido,ContenidoAdmin)
@@ -97,7 +104,7 @@ admin.site.register(models.Configuracion_broadcast)
 admin.site.register(models.Base_cargada_broadcast)
 admin.site.register(models.Alta,AltaAdmin)
 admin.site.register(models.Baja,BajaAdmin)
-admin.site.register(models.Edge)
+admin.site.register(models.Configuracion_conexion_tigohn)
 admin.site.register(models.Mensajes_mo,Mensajes_moAdmin)
 admin.site.register(models.Dlr)
 admin.site.register(models.Conteo_recobro)
