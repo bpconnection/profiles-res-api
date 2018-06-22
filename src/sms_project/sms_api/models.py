@@ -100,13 +100,13 @@ class Tipo_envio(models.Model):
 
 class Estado_envio(models.Model):
     id_estado_envio  = models.AutoField(primary_key=True)
-    estado_envio = models.CharField(max_length=10)
+    estado = models.CharField(max_length=15)
     descripcion = models.CharField(max_length=50)
     class Meta:
         verbose_name = "Estado_envio"
         verbose_name_plural = "Estado Envios"
     def __str__(self):
-        return self.estado_envio
+        return self.estado
 
 class Configuracion_envio(models.Model):
     id_configuracion_envio = models.AutoField(primary_key=True)
@@ -153,10 +153,10 @@ class Lista_negra(models.Model):
 class Contenido(models.Model):
     id_contenido =  models.AutoField(primary_key=True)
     club = models.ForeignKey(Club, on_delete=models.CASCADE)
-    contenido = models.CharField(max_length=200)
+    texto = models.CharField(max_length=200)
     aleatorio = models.BooleanField()
     def __str__(self):
-        return self.contenido
+        return self.texto
 
 class Contenido_programado(models.Model):
     id_contenido_programado =  models.AutoField(primary_key=True)
@@ -164,13 +164,13 @@ class Contenido_programado(models.Model):
     estado_envio = models.ForeignKey(Estado_envio, on_delete=models.CASCADE)
     fecha_envio = models.DateField()
     hora_envio = models.TimeField()
-    fecha_ejecucion= models.DateTimeField()
-    fecha_culminacion= models.DateTimeField()
+    fecha_ejecucion= models.DateTimeField(blank=True, null=True)
+    fecha_culminacion= models.DateTimeField(blank=True, null=True)
     class Meta:
         verbose_name = "Contenido_programado"
         verbose_name_plural = "Contenidos Programados"
     def __str__(self):
-        return format(self.id_contenido)
+        return format(self.id_contenido_programado)
 
 class Envio_contenido(models.Model):
     id_envio_contenido =  models.AutoField(primary_key=True)
@@ -203,6 +203,8 @@ class Club_suscriptor(models.Model):
     fecha_primera_alta = models.DateTimeField(auto_now_add=True)
     #alta =  models.OneToOneField(Alta,on_delete=models.CASCADE,null=True)
     #baja =  models.OneToOneField(Baja,on_delete=models.CASCADE)
+    fecha_alta = models.DateTimeField(blank=True, null=True)
+    fecha_baja = models.DateTimeField(blank=True, null=True)
     fecha_ultimo_evento = models.DateTimeField(auto_now=True )
     fecha_ultimo_cobro = models.DateTimeField(blank=True, null=True)
     estado = models.BooleanField()
@@ -305,7 +307,7 @@ class Dlr(models.Model):
 class Conteo_recobro(models.Model):
     id_conteo_recobro =  models.AutoField(primary_key=True)
     id_club = models.PositiveSmallIntegerField()
-    recobro = models.PositiveSmallIntegerField()
+    recobro = models.PositiveSmallIntegerField(default=0)
     fecha =  models.DateTimeField(auto_now=True)
     class Meta:
         verbose_name = "Conteo_recobro"

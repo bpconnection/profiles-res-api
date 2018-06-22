@@ -35,7 +35,7 @@ class Mensajes_informativoAdmin(admin.ModelAdmin):
         fields = "__all__"
 
 class ContenidoAdmin(admin.ModelAdmin):
-    list_display = ["id_contenido","club","contenido", "aleatorio"]
+    list_display = ["id_contenido","club","texto", "aleatorio"]
     class Meta:
         model = models.Contenido
         fields = "__all__"
