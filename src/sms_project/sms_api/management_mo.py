@@ -96,7 +96,8 @@ class Gestionar_mo():
                     agregar_club_suscriptor.save()
                     Gestionar_mo.alta(agregar_club_suscriptor,self.medio,self.campania)
                     msj_inf = Gestionar_mo.mensaje_info(id_club, "alta")
-                    id_contenido,msj_inf = Gestionar_mo.contenido_aleatorio(id_club)
+                    msj_inf = Gestionar_mo.contenido_programado(id_club)
+
                 else:
                     query_club_suscriptor = models.Club_suscriptor.objects.filter(suscriptor__msisdn=self.origen,club__id_club=id_club)
                     if query_club_suscriptor.exists():
@@ -227,7 +228,7 @@ class Gestionar_mo():
 
 
 
-    def __init__(self, origen, destino, mensaje,binfo, ruta, medio, campania):
+    def __init__(self, origen, destino, mensaje, binfo, ruta, medio, campania):
         self.origen = origen
         self.destino = destino
         self.mensaje = mensaje.lower()
