@@ -33,16 +33,6 @@ class Pais_operadora(models.Model):
     def __str__(self):
         return '%s %s' % (self.id_pais, self.id_operadora)
 
-"""class Plataforma_envio(models.Model):
-    id_plataforma_envio =  models.AutoField(primary_key=True)
-    nombre = models.CharField(max_length=20)
-    descripcion = models.CharField(max_length=50)
-    class Meta:
-        verbose_name = "Plataforma_envio"
-        verbose_name_plural = "Plataforma Envio"
-    def __str__(self):
-        return self.nombre"""
-
 class Club(models.Model):
     id_club =  models.AutoField(primary_key=True)
     nombre_club = models.CharField(max_length=20)
@@ -57,7 +47,6 @@ class Club(models.Model):
     corto_broadcast = models.CharField(max_length=6)
     limite_envios_broadcast = models.PositiveIntegerField()
     cantidad_cobros_diarios = models.PositiveSmallIntegerField()
-    #plataforma_envio = models.ForeignKey(Plataforma_envio, on_delete=models.CASCADE)
     puntos =  models.PositiveIntegerField(default=0)
     estado =  models.BooleanField()
     def __str__(self):
@@ -119,7 +108,7 @@ class Configuracion_envio(models.Model):
     viernes = models.BooleanField()
     sabado = models.BooleanField()
     domingo = models.BooleanField()
-    fecha_ultimo_envio = models.DateTimeField(auto_now=True)
+    fecha_ultimo_envio = models.DateTimeField(blank=True, null=True)
     estado = models.BooleanField()
     class Meta:
         verbose_name = "Configuracion_envio"
@@ -127,8 +116,8 @@ class Configuracion_envio(models.Model):
 
 class Configuracion_reenvio(models.Model):
     id_configuracion_reenvio = models.AutoField(primary_key=True)
-    id_club = models.ForeignKey(Club, on_delete=models.CASCADE)
-    hora_envio = models.DateField()
+    club = models.ForeignKey(Club, on_delete=models.CASCADE)
+    hora_envio = models.TimeField()
     lunes = models.BooleanField()
     martes = models.BooleanField()
     miercoles = models.BooleanField()
@@ -136,7 +125,7 @@ class Configuracion_reenvio(models.Model):
     viernes = models.BooleanField()
     sabado = models.BooleanField()
     domingo = models.BooleanField()
-    fecha_ultimo_envio = models.DateTimeField(auto_now=True)
+    fecha_ultimo_envio = models.DateTimeField(blank=True, null=True)
     estado = models.BooleanField()
     class Meta:
         verbose_name = "Configuracion_reenvio"
@@ -201,12 +190,11 @@ class Club_suscriptor(models.Model):
     club = models.ForeignKey(Club, on_delete=models.CASCADE)
     suscriptor =  models.ForeignKey(Suscriptor,on_delete=models.CASCADE)
     fecha_primera_alta = models.DateTimeField(auto_now_add=True)
-    #alta =  models.OneToOneField(Alta,on_delete=models.CASCADE,null=True)
-    #baja =  models.OneToOneField(Baja,on_delete=models.CASCADE)
     fecha_alta = models.DateTimeField(blank=True, null=True)
     fecha_baja = models.DateTimeField(blank=True, null=True)
     fecha_ultimo_evento = models.DateTimeField(auto_now=True )
     fecha_ultimo_cobro = models.DateTimeField(blank=True, null=True)
+    cantidad_cobro_diario = models.PositiveIntegerField(default=0)
     estado = models.BooleanField()
     class Meta:
         verbose_name = "Club_suscriptor"
@@ -216,8 +204,6 @@ class Club_suscriptor(models.Model):
 
 class Alta(models.Model):
     id_alta =  models.AutoField(primary_key=True)
-    #club = models.IntegerField()
-    #id_suscriptor = models.IntegerField()
     club_suscriptor = models.ForeignKey(Club_suscriptor, on_delete=models.CASCADE,null=True)
     fecha = models.DateTimeField(auto_now_add=True)
     medio = models.CharField(max_length=20,default='sms')
@@ -227,8 +213,6 @@ class Alta(models.Model):
 
 class Baja(models.Model):
     id_baja =  models.AutoField(primary_key=True)
-    ##id_club = models.IntegerField()
-    ##id_suscriptor = models.IntegerField()
     club_suscriptor = models.ForeignKey(Club_suscriptor, on_delete=models.CASCADE,null=True)
     fecha =  models.DateTimeField(auto_now_add=True)
     medio = models.CharField(max_length=20,default='sms')
@@ -290,7 +274,7 @@ class Mensajes_mo(models.Model):
         verbose_name = "Mensajes_mo"
         verbose_name_plural = "Mensajes Entrantes"
 
-class Dlr(models.Model):
+class Dlr_tigo_hn(models.Model):
     id_dlr =  models.AutoField(primary_key=True)
     smsc_id = models.CharField(max_length=10)
     status = models.CharField(max_length=10)
@@ -298,7 +282,7 @@ class Dlr(models.Model):
     dlr_to = models.CharField(max_length=100)
     dlr_from = models.CharField(max_length=100)
     dlr_ts = models.CharField(max_length=100)
-    id_sms = models.CharField(max_length=50)
+    id_envio = models.CharField(max_length=50)
     fecha =  models.DateTimeField(auto_now=True)
     class Meta:
         verbose_name = "Dlr"

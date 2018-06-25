@@ -6,10 +6,24 @@ from . import send_messages
 
 class Gestionar_cobros():
     def conteo_recobro(id_club):
-        agregar_conteo_recobro =  models.Conteo_recobro(
-            id_club = id_club
-        )
-        objeto_conteo_recobro = agregar_conteo_recobro.save()
+        query_actualizar_conteo = models.Conteo_recobro.objects.filter(id_club=id_club)
+        if query_actualizar_conteo.exists():
+            actualizar_conteo = query_actualizar_conteo[0]
+            actualizar_conteo.recobro = query_actualizar_conteo[0].recobro + 1
+            actualizar_conteo.save()
+        else:
+            agregar_conteo_recobro =  models.Conteo_recobro(
+                id_club = id_club
+            )
+            objeto_conteo_recobro = agregar_conteo_recobro.save()
+
+    def actualizar_fecha_envio(id_club,hora_hoy):
+        fecha_hoy  = datetime.datetime.now()
+        query_actualizar_fecha = models.Configuracion_envio.objects.filter(club__id_club=id_club,hora_envio__hour = hora_hoy)
+        if query_actualizar_fecha.exists():
+            actualizar_fecha_envio = query_actualizar_fecha[0]
+            actualizar_fecha_envio.fecha_ultimo_envio = fecha_hoy
+            actualizar_fecha_envio.save()
 
     def procesar(ruta):
          fecha_hoy  = datetime.datetime.now()
@@ -57,7 +71,8 @@ class Gestionar_cobros():
 
             if query_club_activos.exists():
                 for recorrer_club in query_club_activos:
-                    cobros_diarios.Gestionar_cobros.conteo_recobro(id_club)
+                    Gestionar_cobros.conteo_recobro(recorrer_club.id_club)
+                    Gestionar_cobros.actualizar_fecha_envio(recorrer_club.id_club,hora_hoy)
                     query_suscriptor_activos = models.Club_suscriptor.objects.filter(club__id_club = recorrer_club.id_club,estado=True,fecha_alta__lte = fecha_hoy)
                     contenido_programado =  management_mo.Gestionar_mo.contenido_programado(recorrer_club.id_club)
                     if query_suscriptor_activos.exists():

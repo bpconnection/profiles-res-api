@@ -52,6 +52,12 @@ class Configuracion_envioAdmin(admin.ModelAdmin):
         model = models.Configuracion_envio
         fields = "__all__"
 
+class Configuracion_reenvioAdmin(admin.ModelAdmin):
+    list_display = ["club","estado"]
+    class Meta:
+        model = models.Configuracion_envio
+        fields = "__all__"
+
 class Envio_contenidoAdmin(admin.ModelAdmin):
     list_display = ["id_envio_contenido","contenido_programado","fecha"]
     class Meta:
@@ -93,7 +99,7 @@ admin.site.register(models.Tipo_envio)
 admin.site.register(models.Tipo_accion)
 admin.site.register(models.Estado_envio)
 admin.site.register(models.Configuracion_envio,Configuracion_envioAdmin)
-admin.site.register(models.Configuracion_reenvio)
+admin.site.register(models.Configuracion_reenvio,Configuracion_reenvioAdmin)
 admin.site.register(models.Lista_negra)
 admin.site.register(models.Contenido,ContenidoAdmin)
 admin.site.register(models.Contenido_programado,Contenido_programadoAdmin)
@@ -106,7 +112,7 @@ admin.site.register(models.Alta,AltaAdmin)
 admin.site.register(models.Baja,BajaAdmin)
 admin.site.register(models.Configuracion_conexion_tigohn)
 admin.site.register(models.Mensajes_mo,Mensajes_moAdmin)
-admin.site.register(models.Dlr)
+admin.site.register(models.Dlr_tigo_hn)
 admin.site.register(models.Conteo_recobro)
 admin.site.register(models.Reporte_alta)
 admin.site.register(models.Reporte_baja)

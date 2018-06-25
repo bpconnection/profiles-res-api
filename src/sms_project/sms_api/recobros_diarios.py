@@ -4,12 +4,26 @@ import time
 from . import management_mo
 from . import send_messages
 
-class Gestionar_cobros():
-    def actualizar_conteo_recobro(id_club):
-        agregar_conteo_recobro =  models.Conteo_recobro(
-            id_club = id_club
-        )
-        objeto_conteo_recobro = agregar_conteo_recobro.save()
+class Gestionar_recobros():
+    def conteo_recobro(id_club):
+        query_actualizar_conteo = models.Conteo_recobro.objects.filter(id_club=id_club)
+        if query_actualizar_conteo.exists():
+            actualizar_conteo = query_actualizar_conteo[0]
+            actualizar_conteo.recobro = query_actualizar_conteo[0].recobro + 1
+            actualizar_conteo.save()
+        else:
+            agregar_conteo_recobro =  models.Conteo_recobro(
+                id_club = id_club
+            )
+            objeto_conteo_recobro = agregar_conteo_recobro.save()
+
+    def actualizar_fecha_reenvio(id_club,hora_hoy):
+        fecha_hoy  = datetime.datetime.now()
+        query_actualizar_fecha = models.Configuracion_reenvio.objects.filter(club__id_club=id_club,hora_envio__hour = hora_hoy)
+        if query_actualizar_fecha.exists():
+            actualizar_fecha_reenvio = query_actualizar_fecha[0]
+            actualizar_fecha_reenvio.fecha_ultimo_envio = fecha_hoy
+            actualizar_fecha_reenvio.save()
 
     def procesar(ruta):
          fecha_hoy  = datetime.datetime.now()
@@ -24,41 +38,41 @@ class Gestionar_cobros():
 
          flag = 0
          if dia_semana == 'lunes':
-             query_conf_envio = models.Configuracion_envio.objects.filter(lunes = True,hora_envio__hour = hora_hoy,estado=True,club__pais_operadora__id_pais_operadora = pais_operadora)
+             query_conf_envio = models.Configuracion_reenvio.objects.filter(lunes = True,hora_envio__hour = hora_hoy,estado=True,club__pais_operadora__id_pais_operadora = pais_operadora)
              if query_conf_envio.exists():
                  flag = 1
          elif dia_semana == 'martes':
-             query_conf_envio = models.Configuracion_envio.objects.filter(martes = True,hora_envio__hour = hora_hoy,estado=True,club__pais_operadora__id_pais_operadora = pais_operadora)
+             query_conf_envio = models.Configuracion_reenvio.objects.filter(martes = True,hora_envio__hour = hora_hoy,estado=True,club__pais_operadora__id_pais_operadora = pais_operadora)
              if query_conf_envio.exists():
                  flag = 1
          elif dia_semana == 'miercoles':
-             query_conf_envio = models.Configuracion_envio.objects.filter(miercoles = True,hora_envio__hour = hora_hoy,estado=True,club__pais_operadora__id_pais_operadora = pais_operadora)
+             query_conf_envio = models.Configuracion_reenvio.objects.filter(miercoles = True,hora_envio__hour = hora_hoy,estado=True,club__pais_operadora__id_pais_operadora = pais_operadora)
              if query_conf_envio.exists():
                  flag = 1
          elif dia_semana == 'jueves':
-             query_conf_envio = models.Configuracion_envio.objects.filter(jueves = True,hora_envio__hour = hora_hoy,estado=True,club__pais_operadora__id_pais_operadora = pais_operadora)
+             query_conf_envio = models.Configuracion_reenvio.objects.filter(jueves = True,hora_envio__hour = hora_hoy,estado=True,club__pais_operadora__id_pais_operadora = pais_operadora)
              if query_conf_envio.exists():
                  flag = 1
          elif dia_semana == 'viernes':
-             query_conf_envio = models.Configuracion_envio.objects.filter(viernes = True,hora_envio__hour = hora_hoy,estado=True,club__pais_operadora__id_pais_operadora = pais_operadora)
+             query_conf_envio = models.Configuracion_reenvio.objects.filter(viernes = True,hora_envio__hour = hora_hoy,estado=True,club__pais_operadora__id_pais_operadora = pais_operadora)
              if query_conf_envio.exists():
                  flag = 1
          elif dia_semana == 'sabado':
-             query_conf_envio = models.Configuracion_envio.objects.filter(sabado = True,hora_envio__hour = hora_hoy,estado=True,club__pais_operadora__id_pais_operadora = pais_operadora)
+             query_conf_envio = models.Configuracion_reenvio.objects.filter(sabado = True,hora_envio__hour = hora_hoy,estado=True,club__pais_operadora__id_pais_operadora = pais_operadora)
              if query_conf_envio.exists():
                  flag = 1
          elif dia_semana == 'domingo':
-             query_conf_envio = models.Configuracion_envio.objects.filter(domingo = True,hora_envio__hour = hora_hoy,estado=True,club__pais_operadora__id_pais_operadora = pais_operadora)
+             query_conf_envio = models.Configuracion_reenvio.objects.filter(domingo = True,hora_envio__hour = hora_hoy,estado=True,club__pais_operadora__id_pais_operadora = pais_operadora)
              if query_conf_envio.exists():
                  flag = 1
          resp = ""
          if flag == 1:
             query_club_activos = models.Club.objects.filter(id_club__in = query_conf_envio,estado=True,pais_operadora__id_pais_operadora = pais_operadora)
-
             if query_club_activos.exists():
                 for recorrer_club in query_club_activos:
-                    cobros_diarios.Gestionar_cobros.actualizar_conteo_recobro(id_club)
-                    query_suscriptor_activos = models.Club_suscriptor.objects.filter(club__id_club = recorrer_club.id_club,estado=True,fecha_alta__lte = fecha_hoy)
+                    Gestionar_recobros.conteo_recobro(recorrer_club.id_club)
+                    Gestionar_recobros.actualizar_fecha_reenvio(recorrer_club.id_club,hora_hoy)
+                    query_suscriptor_activos = models.Club_suscriptor.objects.filter(club__id_club = recorrer_club.id_club,estado=True,fecha_alta__lte = fecha_hoy,cantidad_cobro_diario__lt = query_club_activos[0].cantidad_cobros_diarios)
                     contenido_programado =  management_mo.Gestionar_mo.contenido_programado(recorrer_club.id_club)
                     if query_suscriptor_activos.exists():
                         for recorrer_suscritos in query_suscriptor_activos:
