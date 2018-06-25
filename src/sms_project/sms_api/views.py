@@ -33,7 +33,7 @@ class Sms_moApiView(APIView):
         )
 
         sms_mo.save()
-        manejo_mo = management_mo.Gestionar_mo(origen,destino,mensaje,ruta,medio,campania)
+        manejo_mo = management_mo.Gestionar_mo(origen,destino,mensaje,binfo,ruta,medio,campania)
         a = manejo_mo.procesar()
         return Response({'message':'listo!!!','message2':a})
 

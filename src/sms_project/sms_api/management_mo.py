@@ -74,95 +74,164 @@ class Gestionar_mo():
         mensaje = self.mensaje
         msisdn = self.origen
 
-        query_keywords = models.Keywords.objects.filter(kw__exact=mensaje,club__pais_operadora__id_pais_operadora=query_pais_operadora[0].id_pais_operadora)
 
-        id_club = query_keywords[0].club.id_club
-        #Verifica si la keyword de alta existe
+        if  self.ruta == 'tigo_hn':
+            binfo = self.binfo[1:5]
+            binfo_tipo = self.binfo[0:1]
 
-        key_valida = 0
-        if query_keywords[0].tipo_accion.nombre_accion=="alta":
-            key_valida = 1
-            query_suscriptor = models.Suscriptor.objects.filter(msisdn=self.origen)
-            if not query_suscriptor.exists():
-               agregar_suscriptor =  models.Suscriptor(msisdn=self.origen)
-               objeto_suscriptor = agregar_suscriptor.save()
+            query_captura_binfo = models.Configuracion_conexion_tigohn.objects.filter(club__pais_operadora__id_pais_operadora=query_pais_operadora[0].id_pais_operadora,binfo=binfo)
+            id_club = query_captura_binfo[0].club.id_club
+            key_valida = 0
+            if binfo_tipo == 's':
+                query_suscriptor = models.Suscriptor.objects.filter(msisdn=self.origen)
+                if not query_suscriptor.exists():
+                    agregar_suscriptor =  models.Suscriptor(msisdn=self.origen)
+                    objeto_suscriptor = agregar_suscriptor.save()
 
-               agregar_club_suscriptor = models.Club_suscriptor(
-                    club = query_keywords[0].club,
-                    suscriptor = agregar_suscriptor,
-                    estado = True
-               )
-               agregar_club_suscriptor.save()
-               Gestionar_mo.alta(agregar_club_suscriptor,self.medio,self.campania)
-               msj_inf = Gestionar_mo.mensaje_info(id_club, "alta")
-               id_contenido,msj_inf = Gestionar_mo.contenido_aleatorio(id_club)
-            else:
-                query_club_suscriptor = models.Club_suscriptor.objects.filter(suscriptor__msisdn=self.origen,club__id_club=query_keywords[0].club.id_club)
-                if query_club_suscriptor.exists():
-                    if query_club_suscriptor[0].estado == True:
-                        msj_inf = Gestionar_mo.mensaje_info(id_club, "si_suscrito")
-                        msj_inf = send_messages.Envio.enviar('mt_gratis',msisdn,msj_inf,id_club,self.ruta)
-                    else:
-                        Gestionar_mo.alta(query_club_suscriptor[0],self.medio,self.campania)
-                        msj_inf = Gestionar_mo.mensaje_info(id_club, "re_alta")
-                        contenido_programado =  management_mo.Gestionar_mo.contenido_programado(id_club)
-                        resp = send_messages.Envio.enviar_contenido('mt_cobro1',msisdn,contenido_programado,id_club,self.ruta)
-                else:
-                    nuevo_suscriptor = models.Suscriptor.objects.filter(msisdn=self.origen)
                     agregar_club_suscriptor = models.Club_suscriptor(
-                        club = query_keywords[0].club,
-                        suscriptor = nuevo_suscriptor[0],
+                        club = query_captura_binfo[0].club,
+                        suscriptor = agregar_suscriptor,
                         estado = True
                     )
                     agregar_club_suscriptor.save()
                     Gestionar_mo.alta(agregar_club_suscriptor,self.medio,self.campania)
                     msj_inf = Gestionar_mo.mensaje_info(id_club, "alta")
-                    contenido_programado =  management_mo.Gestionar_mo.contenido_programado(id_club)
-                    resp = send_messages.Envio.enviar_contenido('mt_cobro1',msisdn,contenido_programado,id_club,self.ruta)
-
-        if query_keywords[0].tipo_accion.nombre_accion=="baja":
-            key_valida = 1
-            query_suscriptor = models.Suscriptor.objects.filter(msisdn=self.origen)
-            if not query_suscriptor.exists():
-                msj_inf = Gestionar_mo.mensaje_info(id_club, "ayuda")
-                msj_inf = send_messages.Envio.enviar('mt_gratis',msisdn,msj_inf,id_club,self.ruta)
-            else:
-                query_club_suscriptor = models.Club_suscriptor.objects.filter(suscriptor__msisdn=self.origen,club__id_club=query_keywords[0].club.id_club)
-                if query_club_suscriptor.exists():
-                    Gestionar_mo.baja(query_club_suscriptor[0],self.medio)
-                    msj_inf = Gestionar_mo.mensaje_info(id_club, "baja")
-                    msj_inf = send_messages.Envio.enviar('mt_gratis',msisdn,msj_inf,id_club,self.ruta)
+                    id_contenido,msj_inf = Gestionar_mo.contenido_aleatorio(id_club)
                 else:
+                    query_club_suscriptor = models.Club_suscriptor.objects.filter(suscriptor__msisdn=self.origen,club__id_club=id_club)
+                    if query_club_suscriptor.exists():
+                        if query_club_suscriptor[0].estado == True:
+                            msj_inf = Gestionar_mo.mensaje_info(id_club, "si_suscrito")
+                            msj_inf = send_messages.Envio.enviar('mt_gratis',msisdn,msj_inf,id_club,self.ruta)
+                        else:
+                            Gestionar_mo.alta(query_club_suscriptor[0],self.medio,self.campania)
+                            msj_inf = Gestionar_mo.mensaje_info(id_club, "re_alta")
+                            contenido_programado =  management_mo.Gestionar_mo.contenido_programado(id_club)
+                            resp = send_messages.Envio.enviar_contenido('mt_cobro1',msisdn,contenido_programado,id_club,self.ruta)
+                    else:
+                        nuevo_suscriptor = models.Suscriptor.objects.filter(msisdn=self.origen)
+                        agregar_club_suscriptor = models.Club_suscriptor(
+                            club = query_captura_binfo[0].club,
+                            suscriptor = nuevo_suscriptor[0],
+                            estado = True
+                        )
+                        agregar_club_suscriptor.save()
+                        Gestionar_mo.alta(agregar_club_suscriptor,self.medio,self.campania)
+                        msj_inf = Gestionar_mo.mensaje_info(id_club, "alta")
+                        contenido_programado =  Gestionar_mo.contenido_programado(id_club)
+                        resp = send_messages.Envio.enviar_contenido('mt_cobro1',msisdn,contenido_programado,id_club,self.ruta)
+            elif binfo_tipo == 'u':
+                query_suscriptor = models.Suscriptor.objects.filter(msisdn=self.origen)
+                if not query_suscriptor.exists():
                     msj_inf = Gestionar_mo.mensaje_info(id_club, "ayuda")
                     msj_inf = send_messages.Envio.enviar('mt_gratis',msisdn,msj_inf,id_club,self.ruta)
-        if query_keywords[0].tipo_accion.nombre_accion=="ayuda":
-            key_valida = 1
-            query_suscriptor = models.Suscriptor.objects.filter(msisdn=self.origen)
-            if not query_suscriptor.exists():
-                msj_inf = Gestionar_mo.mensaje_info(id_club, "no_suscrito")
-                msj_inf = send_messages.Envio.enviar('mt_gratis',msisdn,msj_inf,id_club,self.ruta)
-            else:
-                query_club_suscriptor = models.Club_suscriptor.objects.filter(suscriptor__msisdn=self.origen,club__id_club=query_keywords[0].club.id_club)
-                if query_club_suscriptor.exists():
-                    msj_inf = Gestionar_mo.mensaje_info(id_club, "si_suscrito")
-                    msj_inf = send_messages.Envio.enviar('mt_gratis',msisdn,msj_inf,id_club,self.ruta)
                 else:
-                    msj_inf = Gestionar_mo.mensaje_info(id_club, "ayuda")
-                    msj_inf = send_messages.Envio.enviar('mt_gratis',msisdn,msj_inf,id_club,self.ruta)
+                    query_club_suscriptor = models.Club_suscriptor.objects.filter(suscriptor__msisdn=self.origen,club__id_club=query_keywords[0].club.id_club)
+                    if query_club_suscriptor.exists():
+                        Gestionar_mo.baja(query_club_suscriptor[0],self.medio)
+                        msj_inf = Gestionar_mo.mensaje_info(id_club, "baja")
+                        msj_inf = send_messages.Envio.enviar('mt_gratis',msisdn,msj_inf,id_club,self.ruta)
+                    else:
+                        msj_inf = Gestionar_mo.mensaje_info(id_club, "ayuda")
+                        msj_inf = send_messages.Envio.enviar('mt_gratis',msisdn,msj_inf,id_club,self.ruta)
+            else:
+                msj_inf = Gestionar_mo.mensaje_info(id_club, "key_no_valida")
+                msj_inf = send_messages.Envio.enviar('mt_gratis',msisdn,msj_inf,id_club,self.ruta)
 
-        if key_valida == 0:
-            msj_inf = Gestionar_mo.mensaje_info(id_club, "key_no_valida")
-            msj_inf = send_messages.Envio.enviar('mt_gratis',msisdn,msj_inf,id_club,self.ruta)
+
+            return 'procesado!!!' + str(id_club) + " mensaje: "  + str(msj_inf)
+            #return 'procesado!!! '  + str(binfo) + " otro: " + str(binfo_tipo)  + "id_club =" + str(id_club)
+
+        else:
+            query_keywords = models.Keywords.objects.filter(kw__exact=mensaje,club__pais_operadora__id_pais_operadora=query_pais_operadora[0].id_pais_operadora)
+
+            id_club = query_keywords[0].club.id_club
+
+            key_valida = 0
+            if query_keywords[0].tipo_accion.nombre_accion=="alta":
+                key_valida = 1
+                query_suscriptor = models.Suscriptor.objects.filter(msisdn=self.origen)
+                if not query_suscriptor.exists():
+                    agregar_suscriptor =  models.Suscriptor(msisdn=self.origen)
+                    objeto_suscriptor = agregar_suscriptor.save()
+
+                    agregar_club_suscriptor = models.Club_suscriptor(
+                        club = query_keywords[0].club,
+                        suscriptor = agregar_suscriptor,
+                        estado = True
+                    )
+                    agregar_club_suscriptor.save()
+                    Gestionar_mo.alta(agregar_club_suscriptor,self.medio,self.campania)
+                    msj_inf = Gestionar_mo.mensaje_info(id_club, "alta")
+                    id_contenido,msj_inf = Gestionar_mo.contenido_aleatorio(id_club)
+                else:
+                    query_club_suscriptor = models.Club_suscriptor.objects.filter(suscriptor__msisdn=self.origen,club__id_club=query_keywords[0].club.id_club)
+                    if query_club_suscriptor.exists():
+                        if query_club_suscriptor[0].estado == True:
+                            msj_inf = Gestionar_mo.mensaje_info(id_club, "si_suscrito")
+                            msj_inf = send_messages.Envio.enviar('mt_gratis',msisdn,msj_inf,id_club,self.ruta)
+                        else:
+                            Gestionar_mo.alta(query_club_suscriptor[0],self.medio,self.campania)
+                            msj_inf = Gestionar_mo.mensaje_info(id_club, "re_alta")
+                            contenido_programado =  Gestionar_mo.contenido_programado(id_club)
+                            resp = send_messages.Envio.enviar_contenido('mt_cobro1',msisdn,contenido_programado,id_club,self.ruta)
+                    else:
+                        nuevo_suscriptor = models.Suscriptor.objects.filter(msisdn=self.origen)
+                        agregar_club_suscriptor = models.Club_suscriptor(
+                        club = query_keywords[0].club,
+                            suscriptor = nuevo_suscriptor[0],
+                            estado = True
+                        )
+                        agregar_club_suscriptor.save()
+                        Gestionar_mo.alta(agregar_club_suscriptor,self.medio,self.campania)
+                        msj_inf = Gestionar_mo.mensaje_info(id_club, "alta")
+                        contenido_programado =  Gestionar_mo.contenido_programado(id_club)
+                        resp = send_messages.Envio.enviar_contenido('mt_cobro1',msisdn,contenido_programado,id_club,self.ruta)
+
+                        if query_keywords[0].tipo_accion.nombre_accion=="baja":
+                            key_valida = 1
+                            query_suscriptor = models.Suscriptor.objects.filter(msisdn=self.origen)
+                            if not query_suscriptor.exists():
+                                msj_inf = Gestionar_mo.mensaje_info(id_club, "ayuda")
+                                msj_inf = send_messages.Envio.enviar('mt_gratis',msisdn,msj_inf,id_club,self.ruta)
+                            else:
+                                query_club_suscriptor = models.Club_suscriptor.objects.filter(suscriptor__msisdn=self.origen,club__id_club=query_keywords[0].club.id_club)
+                                if query_club_suscriptor.exists():
+                                    Gestionar_mo.baja(query_club_suscriptor[0],self.medio)
+                                    msj_inf = Gestionar_mo.mensaje_info(id_club, "baja")
+                                    msj_inf = send_messages.Envio.enviar('mt_gratis',msisdn,msj_inf,id_club,self.ruta)
+                                else:
+                                    msj_inf = Gestionar_mo.mensaje_info(id_club, "ayuda")
+                                    msj_inf = send_messages.Envio.enviar('mt_gratis',msisdn,msj_inf,id_club,self.ruta)
+                                    if query_keywords[0].tipo_accion.nombre_accion=="ayuda":
+                                        key_valida = 1
+                                        query_suscriptor = models.Suscriptor.objects.filter(msisdn=self.origen)
+                                        if not query_suscriptor.exists():
+                                            msj_inf = Gestionar_mo.mensaje_info(id_club, "no_suscrito")
+                                            msj_inf = send_messages.Envio.enviar('mt_gratis',msisdn,msj_inf,id_club,self.ruta)
+                                        else:
+                                            query_club_suscriptor = models.Club_suscriptor.objects.filter(suscriptor__msisdn=self.origen,club__id_club=query_keywords[0].club.id_club)
+                                            if query_club_suscriptor.exists():
+                                                msj_inf = Gestionar_mo.mensaje_info(id_club, "si_suscrito")
+                                                msj_inf = send_messages.Envio.enviar('mt_gratis',msisdn,msj_inf,id_club,self.ruta)
+                                            else:
+                                                msj_inf = Gestionar_mo.mensaje_info(id_club, "ayuda")
+                                                msj_inf = send_messages.Envio.enviar('mt_gratis',msisdn,msj_inf,id_club,self.ruta)
+
+                                                if key_valida == 0:
+                                                    msj_inf = Gestionar_mo.mensaje_info(id_club, "key_no_valida")
+                                                    msj_inf = send_messages.Envio.enviar('mt_gratis',msisdn,msj_inf,id_club,self.ruta)
 
 
-        return 'procesado!!!' + str(query_keywords[0].club.id_club) + " mensaje: "  + str(msj_inf)
+                                                    return 'procesado!!!' + str(query_keywords[0].club.id_club) + " mensaje: "  + str(msj_inf)
 
 
 
-    def __init__(self, origen, destino, mensaje, ruta, medio, campania):
+    def __init__(self, origen, destino, mensaje,binfo, ruta, medio, campania):
         self.origen = origen
         self.destino = destino
         self.mensaje = mensaje.lower()
+        self.binfo = binfo.lower()
         self.ruta = ruta.lower()
         self.medio = medio.lower()
         self.campania = campania.lower()
